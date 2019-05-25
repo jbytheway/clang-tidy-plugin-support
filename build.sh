@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -uex
+
 export CC=clang-8
 export CXX=clang++-8
 
