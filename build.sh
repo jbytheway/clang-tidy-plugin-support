@@ -19,6 +19,7 @@ git_clone https://git.llvm.org/git/clang-tools-extra.git extra
 cd ..
 
 patch -p1 < ../compatibility.patch
+patch -p1 < ../plugin-support.patch
 
 mkdir build
 cd build

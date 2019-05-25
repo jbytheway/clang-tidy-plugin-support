@@ -1,0 +1,87 @@
+diff --git a/tools/extra/clang-tidy/ClangTidyOptions.cpp b/tools/extra/clang-tidy/ClangTidyOptions.cpp
+index c40e97c5fb6..ee5c1b31e9e 100644
+--- a/tools/extra/clang-tidy/ClangTidyOptions.cpp
++++ b/tools/extra/clang-tidy/ClangTidyOptions.cpp
+@@ -86,6 +86,7 @@ template <> struct MappingTraits<ClangTidyOptions> {
+     bool Ignored = false;
+     IO.mapOptional("Checks", Options.Checks);
+     IO.mapOptional("WarningsAsErrors", Options.WarningsAsErrors);
++    IO.mapOptional("Plugins", Options.Plugins);
+     IO.mapOptional("HeaderFilterRegex", Options.HeaderFilterRegex);
+     IO.mapOptional("AnalyzeTemporaryDtors", Ignored); // legacy compatibility
+     IO.mapOptional("FormatStyle", Options.FormatStyle);
+@@ -106,6 +107,7 @@ ClangTidyOptions ClangTidyOptions::getDefaults() {
+   ClangTidyOptions Options;
+   Options.Checks = "";
+   Options.WarningsAsErrors = "";
++  Options.Plugins = "";
+   Options.HeaderFilterRegex = "";
+   Options.SystemHeaders = false;
+   Options.FormatStyle = "none";
+@@ -145,6 +147,7 @@ ClangTidyOptions::mergeWith(const ClangTidyOptions &Other) const {
+ 
+   mergeCommaSeparatedLists(Result.Checks, Other.Checks);
+   mergeCommaSeparatedLists(Result.WarningsAsErrors, Other.WarningsAsErrors);
++  mergeCommaSeparatedLists(Result.Plugins, Other.Plugins);
+   overrideValue(Result.HeaderFilterRegex, Other.HeaderFilterRegex);
+   overrideValue(Result.SystemHeaders, Other.SystemHeaders);
+   overrideValue(Result.FormatStyle, Other.FormatStyle);
+diff --git a/tools/extra/clang-tidy/ClangTidyOptions.h b/tools/extra/clang-tidy/ClangTidyOptions.h
+index 1a7535447cb..aad058ff30f 100644
+--- a/tools/extra/clang-tidy/ClangTidyOptions.h
++++ b/tools/extra/clang-tidy/ClangTidyOptions.h
+@@ -67,6 +67,9 @@ struct ClangTidyOptions {
+   /// \brief WarningsAsErrors filter.
+   llvm::Optional<std::string> WarningsAsErrors;
+ 
++  /// \brief List of plugins.
++  llvm::Optional<std::string> Plugins;
++
+   /// \brief Output warnings from headers matching this filter. Warnings from
+   /// main files will always be displayed.
+   llvm::Optional<std::string> HeaderFilterRegex;
+diff --git a/tools/extra/clang-tidy/tool/ClangTidyMain.cpp b/tools/extra/clang-tidy/tool/ClangTidyMain.cpp
+index 12a60244f34..50e4bad96d2 100644
+--- a/tools/extra/clang-tidy/tool/ClangTidyMain.cpp
++++ b/tools/extra/clang-tidy/tool/ClangTidyMain.cpp
+@@ -164,6 +164,12 @@ each source file in its parent directories.
+ )"),
+                                    cl::init(""), cl::cat(ClangTidyCategory));
+ 
++static cl::opt<std::string> Plugins("plugins", cl::desc(R"(
++Comma-separated list of plugins:
++  -plugins="my-check.so,..."
++)"),
++                                   cl::init(""), cl::cat(ClangTidyCategory));
++
+ static cl::opt<bool> DumpConfig("dump-config", cl::desc(R"(
+ Dumps configuration in the YAML format to
+ stdout. This option can be used along with a
+@@ -280,6 +286,8 @@ static std::unique_ptr<ClangTidyOptionsProvider> createOptionsProvider(
+     OverrideOptions.Checks = Checks;
+   if (WarningsAsErrors.getNumOccurrences() > 0)
+     OverrideOptions.WarningsAsErrors = WarningsAsErrors;
++  if (Plugins.getNumOccurrences() > 0)
++    OverrideOptions.Plugins = Plugins;
+   if (HeaderFilter.getNumOccurrences() > 0)
+     OverrideOptions.HeaderFilterRegex = HeaderFilter;
+   if (SystemHeaders.getNumOccurrences() > 0)
+@@ -365,6 +373,18 @@ static int clangTidyMain(int argc, const char **argv) {
+   SmallString<256> FilePath = MakeAbsolute(FileName);
+ 
+   ClangTidyOptions EffectiveOptions = OptionsProvider->getOptions(FilePath);
++  if (EffectiveOptions.Plugins) {
++    SmallVector<StringRef, 10> PluginNames;
++    StringRef(*EffectiveOptions.Plugins).split(PluginNames, ",", -1, false);
++    for (StringRef PluginNameRef : PluginNames) {
++      std::string PluginName = PluginNameRef.str();
++      std::string errMsg;
++      if (llvm::sys::DynamicLibrary::LoadLibraryPermanently(PluginName.c_str(), &errMsg)) {
++        llvm::errs() << "Failed to load plugin " << PluginName << ": " << errMsg << "\n";
++        return 1;
++      }
++    }
++  }
+   std::vector<std::string> EnabledChecks =
+       getCheckNames(EffectiveOptions, AllowEnablingAnalyzerAlphaCheckers);
+ 
