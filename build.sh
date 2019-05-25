@@ -5,7 +5,9 @@ set -uex
 export CC=clang-8
 export CXX=clang++-8
 
-alias git_clone="git clone --depth 1 --branch release_80"
+function git_clone {
+  git clone --depth 1 --branch release_80 "$@"
+}
 
 git_clone https://github.com/llvm-mirror/clang.git
 cd clang/tools
