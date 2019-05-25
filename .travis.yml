@@ -1,0 +1,16 @@
+dist: xenial
+language: c++
+os: linux
+
+cache: ccache
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-xenial-8
+    packages:
+      - clang-8
+
+script:
+  build.sh
