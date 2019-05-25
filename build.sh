@@ -20,6 +20,7 @@ cd ..
 mkdir build
 cd build
 cmake \
+  -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
   -DCMAKE_EXE_LINKER_FLAGS="-rdynamic -fuse-ld=lld" \
   -DLLVM_INCLUDE_TESTS=OFF \
