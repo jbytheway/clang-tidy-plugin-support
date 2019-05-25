@@ -23,4 +23,5 @@ cmake \
   -DCMAKE_VERBOSE_MAKEFILE=ON \
   -DLLVM_DIR=/usr/lib/llvm-8/lib/cmake/llvm \
   ..
+cat CMakeCache.txt
 make -j3
