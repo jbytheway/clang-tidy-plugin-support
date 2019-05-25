@@ -5,7 +5,9 @@ set -uex
 export CC=clang-8
 export CXX=clang++-8
 
-cat /usr/lib/llvm-8/lib/cmake/llvm/LLVMConfig.cmake
+llvm_dir=/usr/lib/llvm-8/lib/cmake/llvm
+
+test -f "$llvm_dir/LLVMConfig.cmake"
 
 function git_clone {
   git clone --depth 1 --branch release_80 "$@"
@@ -24,7 +26,7 @@ cmake \
   -DLLVM_TARGETS_TO_BUILD="" \
   -DCLANG_ENABLE_ARCMT=OFF \
   -DCMAKE_VERBOSE_MAKEFILE=ON \
-  -DLLVM_DIR=/usr/lib/llvm-8/lib/cmake/llvm \
+  -DLLVM_DIR="$llvm_dir" \
   ..
 cat CMakeCache.txt
 make -j3
