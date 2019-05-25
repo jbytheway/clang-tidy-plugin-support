@@ -21,5 +21,6 @@ cmake \
   -DLLVM_TARGETS_TO_BUILD="" \
   -DCLANG_ENABLE_ARCMT=OFF \
   -DCMAKE_VERBOSE_MAKEFILE=ON \
+  -DLLVM_DIR=/usr/lib/llvm-8/lib/cmake/llvm \
   ..
 make -j3
