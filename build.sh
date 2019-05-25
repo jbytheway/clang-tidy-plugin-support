@@ -17,6 +17,9 @@ git_clone https://github.com/llvm-mirror/clang.git
 cd clang/tools
 git_clone https://git.llvm.org/git/clang-tools-extra.git extra
 cd ..
+
+patch -p1 < ../compatibility.patch
+
 mkdir build
 cd build
 cmake \
