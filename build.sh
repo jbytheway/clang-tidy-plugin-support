@@ -20,6 +20,7 @@ cd ..
 
 patch -p1 < ../compatibility.patch
 patch -p1 < ../plugin-support.patch
+patch -p1 < ../remove-some-checks.patch
 
 mkdir build
 cd build
