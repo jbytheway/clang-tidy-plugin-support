@@ -2,6 +2,14 @@
 
 set -uex
 
+root=$PWD
+date +%s > build-start-time
+time_limit=$((45*60))
+
+function build_time {
+  echo $(($(date +%s) - $(cat $root/build-start-time)))
+}
+
 export CC=clang-8
 export CXX=clang++-8
 
@@ -37,5 +45,15 @@ cmake \
   ..
 cat CMakeCache.txt
 ccache -s
-make -j3 clang-tidy
+# Loop over targets so we can abort when aproaching the 50 minute Travis time
+# limit
+for target in `cat $root/targets`
+do
+  time=$(build_time)
+  if [ "$time" -gt "$time_limit" ]
+  then
+    echo "Stopping build; running out of time"
+  fi
+  make -j3 "$target"
+done
 ccache -s
