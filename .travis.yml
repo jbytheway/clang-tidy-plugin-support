@@ -13,4 +13,4 @@ addons:
       - clang-8
 
 script:
-  build.sh
+  - ./build.sh
