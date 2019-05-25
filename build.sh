@@ -34,4 +34,4 @@ cmake \
   -DLLVM_DIR="$llvm_dir" \
   ..
 cat CMakeCache.txt
-make -j3 clangStaticAnalyzerCore clangStaticAnalyzerCheckers
+make -j3 clang-tidy
