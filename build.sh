@@ -21,6 +21,8 @@ mkdir build
 cd build
 cmake \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DCMAKE_C_FLAGS="-fuse-ld=lld" \
+  -DCMAKE_CXX_FLAGS="-fuse-ld=lld" \
   -DCMAKE_EXE_LINKER_FLAGS="-rdynamic" \
   -DLLVM_INCLUDE_TESTS=OFF \
   -DLLVM_TARGETS_TO_BUILD="" \

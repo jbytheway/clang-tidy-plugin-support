@@ -12,6 +12,7 @@ addons:
     packages:
       - clang-8
       - llvm-8-dev
+      - lld-8
 
 script:
   - ./build.sh
