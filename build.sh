@@ -5,6 +5,8 @@ set -uex
 export CC=clang-8
 export CXX=clang++-8
 
+cat /usr/lib/llvm-8/lib/cmake/llvm/LLVMConfig.cmake
+
 function git_clone {
   git clone --depth 1 --branch release_80 "$@"
 }
