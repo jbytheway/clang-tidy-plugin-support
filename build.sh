@@ -34,4 +34,6 @@ cmake \
   -DLLVM_DIR="$llvm_dir" \
   ..
 cat CMakeCache.txt
+ccache -s
 make -j3 clang-tidy
+ccache -s
