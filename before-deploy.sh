@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -uex
+
 name=clang-tidy-plugin-support-$TRAVIS_TAG
 mkdir -p $name/{include,bin}
 cp clang/build/bin/clang-tidy $name/bin
