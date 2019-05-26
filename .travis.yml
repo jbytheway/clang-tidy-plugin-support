@@ -17,11 +17,17 @@ addons:
 script:
   - ./build.sh
 
+before_deploy:
+  - mkdir include bin
+  - cp clang/build/bin/clang-tidy bin
+  - cp clang/tools/extra/clang-tidy/*.h include
+  - tar -cJvf clang-tidy-plugin-support-$TRAVIS_TAG.tar.xz include bin
+
 deploy:
   provider: releases
   api_key:
     secure: LGEdJvjus65RepoNuCEq5XPNaxBAFDfIXmTnuUsH3uMzi0/VTYoz1j04/xJb9uYTnLiZmSSJZVZCR7DwN0EySGaMP8Qhbs73wN5Igjs5rmNi5/ttsJDPhZNbku5cK9IL8aS15xVRBLDqsmj7eypSw+dUJCQhlxNb2//lqm1hk1Nrgnek4f1ojQL5GqPVtwBtWMFPOO+/OAV3qh/LpGRBWqQZo6K4Dhgf3rKrLA9hw8RKctgSRfeWJvTjULWBQM5XGCr2ios9KL0ngcusC9QchTsETHPjT4l10jvVuMhthQiPcFgOtokqLd0v6PXbGehumzRkjtHWqAQwGMkDWJR8gmO95HPG3wJ+2/qp9du1z1WD+KTUwW26QiuQ1jwrD1FIo4D2xokFsSW1B0GW8sSwaHwbpkMZRlAy5zAS9Fx9TiXITZtCWDdhtfFEWssHt/ZwzscdXsakxFs82P8rpom9c/dT1u3wAkj+7HBr5YKtm57IfZ6iS/bwARd6BHjXYF/4FX8gilQ7D53V5V7mUptnNVvZ+dSZxNLhu19gBDW7RiH6QFwD+OPO+vhdIx4o9mvKqTc4zXtykHr0g2u2ZY+VL+8wzBVL5Ixd1yJj49WklZs4BCQmPxEKTeqJzYkpVozMlpFYRjZYecdVfXID9HOdOVsxS8GieV1hDHnwJGsQaHk=
-  file: clang/build/bin/clang-tidy
+  file: clang-tidy-plugin-support-$TRAVIS_TAG.tar.xz
   skip_cleanup: true
   on:
     tags: true
