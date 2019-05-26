@@ -4,7 +4,7 @@ set -uex
 
 root=$PWD
 date +%s > build-start-time
-time_limit=$((45*60))
+time_limit=2650
 
 function build_time {
   echo $(($(date +%s) - $(cat $root/build-start-time)))
