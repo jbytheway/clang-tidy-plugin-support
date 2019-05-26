@@ -17,4 +17,12 @@ clangTidyModernizeModule
 clangTidyPerformanceModule
 clangTidyPortabilityModule
 clangTidyReadabilityModule
+clangTidyZirconModule
+clangTidyAndroidModule
+clangTidyAbseilModule
+clangTidyBoostModule
+clangTidyFuchsiaModule
+clangTidyGoogleModule
+clangTidyMPIModule
+clangTidyObjCModule
 clang-tidy
