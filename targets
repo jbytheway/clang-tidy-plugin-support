@@ -7,7 +7,16 @@ clangAnalysis clangEdit clangRewrite
 clangDriver
 clangSerialization
 clangFrontend
-clangTooling clangToolingCore clangToolingInclusions clangFormat clangTidy
+clangTooling
+clangToolingCore
+clangToolingInclusions
+clangFormat
+clangCrossTU
+clangIndex
+clangStaticAnalyzerCore
+clangStaticAnalyzerCheckers
+clangStaticAnalyzerFrontend
+clangTidy
 clangTidyBugproneModule
 clangTidyCERTModule
 clangTidyCppCoreGuidelinesModule
