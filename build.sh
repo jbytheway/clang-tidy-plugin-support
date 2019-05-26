@@ -39,10 +39,10 @@ cmake \
   -DLLVM_INCLUDE_TESTS=OFF \
   -DLLVM_TARGETS_TO_BUILD="" \
   -DCLANG_ENABLE_ARCMT=OFF \
-  -DCLANG_ENABLE_STATIC_ANALYZER=OFF \
   -DCMAKE_VERBOSE_MAKEFILE=ON \
   -DLLVM_DIR="$llvm_dir" \
   ..
+  # -DCLANG_ENABLE_STATIC_ANALYZER=OFF \
 cat CMakeCache.txt
 ccache -s
 # Loop over targets so we can abort when aproaching the 50 minute Travis time
