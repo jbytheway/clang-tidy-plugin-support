@@ -6,4 +6,3 @@ cp clang/build/bin/clang-tidy $name/bin
 cp clang/tools/extra/clang-tidy/*.h $name/include
 cp clang/LICENSE.TXT $name/clang-LICENSE.TXT
 tar -cJvf $name.tar.xz $name
-
