@@ -34,7 +34,7 @@ mkdir build
 cd build
 cmake \
   -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DCMAKE_BUILD_TYPE=MinSizeRel \
   -DCMAKE_EXE_LINKER_FLAGS="-rdynamic -fuse-ld=lld" \
   -DLLVM_INCLUDE_TESTS=OFF \
   -DLLVM_TARGETS_TO_BUILD="" \
