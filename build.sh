@@ -47,7 +47,7 @@ cat CMakeCache.txt
 ccache -s
 # Loop over targets so we can abort when aproaching the 50 minute Travis time
 # limit
-for target in `cat $root/targets`
+while read targets
 do
   time=$(build_time)
   if [ "$time" -gt "$time_limit" ]
@@ -55,6 +55,6 @@ do
     echo "Stopping build; running out of time"
     break
   fi
-  make -j3 "$target"
-done
+  make -j3 $targets
+done < $root/targets
 ccache -s
