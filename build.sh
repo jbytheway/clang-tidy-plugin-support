@@ -58,4 +58,3 @@ done < $root/targets
 ccache -s
 
 cd $root
-find
