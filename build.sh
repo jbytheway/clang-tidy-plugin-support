@@ -53,6 +53,7 @@ do
   if [ "$time" -gt "$time_limit" ]
   then
     echo "Stopping build; running out of time"
+    break
   fi
   make -j3 "$target"
 done
