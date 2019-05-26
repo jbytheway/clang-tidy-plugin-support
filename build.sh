@@ -56,3 +56,6 @@ do
   make -j3 $targets
 done < $root/targets
 ccache -s
+
+cd $root
+find
