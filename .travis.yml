@@ -18,11 +18,7 @@ script:
   - ./build.sh
 
 before_deploy:
-  - mkdir include bin
-  - cp clang/build/bin/clang-tidy bin
-  - cp clang/tools/extra/clang-tidy/*.h include
-  - cp clang/LICENSE.TXT clang-LICENSE.TXT
-  - tar -cJvf clang-tidy-plugin-support-$TRAVIS_TAG.tar.xz include bin clang-LICENSE.TXT
+  - ./before-deploy.sh
 
 deploy:
   provider: releases
