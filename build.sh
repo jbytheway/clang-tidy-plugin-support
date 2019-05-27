@@ -43,7 +43,7 @@ cmake \
   -DLLVM_DIR="$llvm_dir" \
   ..
   # -DCLANG_ENABLE_STATIC_ANALYZER=OFF \
-cat CMakeCache.txt
+#cat CMakeCache.txt
 # Loop over targets so we can abort when aproaching the 50 minute Travis time
 # limit
 while read targets
