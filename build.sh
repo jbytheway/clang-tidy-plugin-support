@@ -6,6 +6,8 @@ root=$PWD
 date +%s > build-start-time
 time_limit=2650
 
+ccache -s
+
 function build_time {
   echo $(($(date +%s) - $(cat $root/build-start-time)))
 }
@@ -42,7 +44,6 @@ cmake \
   ..
   # -DCLANG_ENABLE_STATIC_ANALYZER=OFF \
 cat CMakeCache.txt
-ccache -s
 # Loop over targets so we can abort when aproaching the 50 minute Travis time
 # limit
 while read targets
