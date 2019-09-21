@@ -41,14 +41,15 @@ index 1a7535447cb..aad058ff30f 100644
    /// main files will always be displayed.
    llvm::Optional<std::string> HeaderFilterRegex;
 diff --git a/tools/extra/clang-tidy/tool/CMakeLists.txt b/tools/extra/clang-tidy/tool/CMakeLists.txt
-index f58cfea5518..4305e8f475f 100644
+index f58cfea5518..1f9ebc0c3b1 100644
 --- a/tools/extra/clang-tidy/tool/CMakeLists.txt
 +++ b/tools/extra/clang-tidy/tool/CMakeLists.txt
-@@ -5,13 +5,13 @@ set(LLVM_LINK_COMPONENTS
+@@ -5,13 +5,14 @@ set(LLVM_LINK_COMPONENTS
    support
    )
  
 -add_clang_tool(clang-tidy
++set(LLVM_OPTIONAL_SOURCES "dummy.cpp")
 +add_clang_library(clangTidyMain
    ClangTidyMain.cpp
    )
@@ -61,7 +62,7 @@ index f58cfea5518..4305e8f475f 100644
    PRIVATE
    clangAST
    clangASTMatchers
-@@ -39,11 +39,22 @@ target_link_libraries(clang-tidy
+@@ -39,11 +40,22 @@ target_link_libraries(clang-tidy
    )
  
  if(CLANG_ENABLE_STATIC_ANALYZER)
@@ -75,7 +76,7 @@ index f58cfea5518..4305e8f475f 100644
 +set(LLVM_OPTIONAL_SOURCES "ClangTidyMain.cpp")
 +# using dummy source file to supress warning about no sources
 +add_clang_tool(clang-tidy
-+  ${LLVM_MAIN_SRC_DIR}/cmake/dummy.cpp
++  dummy.cpp
 +  )
 +target_link_libraries(clang-tidy
 +  PRIVATE
@@ -130,6 +131,13 @@ index 12a60244f34..50e4bad96d2 100644
    std::vector<std::string> EnabledChecks =
        getCheckNames(EffectiveOptions, AllowEnablingAnalyzerAlphaCheckers);
  
+diff --git a/tools/extra/clang-tidy/tool/dummy.cpp b/tools/extra/clang-tidy/tool/dummy.cpp
+new file mode 100644
+index 00000000000..c027d248738
+--- /dev/null
++++ b/tools/extra/clang-tidy/tool/dummy.cpp
+@@ -0,0 +1 @@
++typedef int dummy;
 diff --git a/tools/extra/test/clang-tidy/check_clang_tidy.py b/tools/extra/test/clang-tidy/check_clang_tidy.py
 index 9768011a3ef..7e1d1e370cf 100755
 --- a/tools/extra/test/clang-tidy/check_clang_tidy.py
