@@ -10,4 +10,5 @@ ln -s /usr/bin/FileCheck-8 $name/bin/FileCheck
 cp clang/tools/extra/clang-tidy/*.h $name/include
 cp clang/LICENSE.TXT $name/clang-LICENSE.TXT
 ln -s /usr/include/clang $name/lib/clang
+cp clang/build/lib/libclangTidyMain.a $name/lib
 tar -cJvf $name.tar.xz $name
