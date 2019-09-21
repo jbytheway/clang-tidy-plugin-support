@@ -21,12 +21,25 @@ The logic of the build is contained in [the build script](build.sh).
 
 ## How it works
 
+Plugin support is implemented in two different ways in this repository.
+
+### Plugin support in the `clang-tidy` executable
 In short, this version of `clang-tidy` is compiled from the usual llvm-8
 sources, but with `-rdynamic` enabled, which allows plugins to call functions
 within the `clang-tidy` binary.  This is sufficient to enable plugins to be
 usable, via `LD_PRELOAD`.  However, that's not always convenient, so I have
 also patched in a `-plugins` option that allows you to specify plugins to be
 loaded on the command line.
+
+### `clang-tidy` as a static library
+A static library `lib/clangTidyMain.a` is additionally built along with
+`clang-tidy`, containing the usual functionality of `clang-tidy`, including
+the main function.  Therefore you can easily switch from building your
+plugin as a dynamic library to linking your plugin against `clangTidyMain.a`
+to create a custom `clang-tidy` executable.  The main function is already
+provided in `clangTidyMain.a` so there's no need to write your own main
+function.  `check_clang_tidy.py` is also patched to allow using it with the
+custom `clang-tidy` executable.
 
 ## Configuring a Travis build to use this project
 
@@ -51,6 +64,8 @@ remaining things required.  It provides:
 * Further headers; these are internal `clang-tidy` headers not normally
   installed by llvm.
 * The patched `clang-tidy` binary with plugin support.
+* A static library `clangTidyMain.a` containing the usual `clang-tidy`
+  functionality.
 * A symlink to access `FileCheck` under its usual name, not `FileCheck-8`.
 * `check_clang_tidy.py`, also used for tests.
 
@@ -64,6 +79,7 @@ find_package(LLVM REQUIRED CONFIG)
 find_package(Clang REQUIRED CONFIG)
 
 add_library(YourPlugin MODULE ...)
+# or `add_executable(YourExecutable ...)` if you want to build a custom executable
 
 SET(ctps_version llvm-8.0.1-r12)
 SET(ctps_src ${CMAKE_CURRENT_BINARY_DIR}/clang-tidy-plugin-support)
@@ -80,6 +96,12 @@ ExternalProject_Add(
 )
 
 add_dependencies(YourPlugin clang-tidy-plugin-support)
+
+#### These are needed if you want to build a custom executable
+# target_link_libraries(
+#     CataAnalyzerPlugin
+#     clangTidyMain
+#     )
 
 target_include_directories(
     YourPlugin SYSTEM PRIVATE
@@ -107,13 +129,16 @@ access to the same Xenial packages and the , then that is also possible.
 
 Check out the llvm sources.  For best compatibility, use the `release_80`
 branches within the various repositories at https://llvm.org/git/ or their
-mirrors at https://github.com/llvm-mirror.
+mirrors at https://github.com/llvm/llvm-project (official) or
+https://github.com/llvm-mirror (unofficial).
 
-If you want to add the `-plugins` command-line option, then apply the
-[patch](plugin-support.patch) found in this repository.
+If you want to add the `-plugins` command-line option or linking against
+the `clangTidyMain.a`, then apply the [patch](plugin-support.patch) found in
+this repository.
 
-Build `clang-tidy`, making sure to pass `-DCMAKE_EXE_LINKER_FLAGS="-rdynamic"`
-to CMake when configuring your build.
+Build `clang-tidy`. If you want to run `clang-tidy` with the dynamic plugin
+support, make sure to pass `-DCMAKE_EXE_LINKER_FLAGS="-rdynamic"` to CMake
+when configuring your build.
 
 In the CMake code above, add a setting which allows the developer to specify
 the location of the necessary `clang-tidy` internal headers.  If that is set,
