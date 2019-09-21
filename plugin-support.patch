@@ -40,6 +40,51 @@ index 1a7535447cb..aad058ff30f 100644
    /// \brief Output warnings from headers matching this filter. Warnings from
    /// main files will always be displayed.
    llvm::Optional<std::string> HeaderFilterRegex;
+diff --git a/tools/extra/clang-tidy/tool/CMakeLists.txt b/tools/extra/clang-tidy/tool/CMakeLists.txt
+index f58cfea5518..4305e8f475f 100644
+--- a/tools/extra/clang-tidy/tool/CMakeLists.txt
++++ b/tools/extra/clang-tidy/tool/CMakeLists.txt
+@@ -5,13 +5,13 @@ set(LLVM_LINK_COMPONENTS
+   support
+   )
+ 
+-add_clang_tool(clang-tidy
++add_clang_library(clangTidyMain
+   ClangTidyMain.cpp
+   )
+-add_dependencies(clang-tidy
++add_dependencies(clangTidyMain
+   clang-headers
+   )
+-target_link_libraries(clang-tidy
++target_link_libraries(clangTidyMain
+   PRIVATE
+   clangAST
+   clangASTMatchers
+@@ -39,11 +39,22 @@ target_link_libraries(clang-tidy
+   )
+ 
+ if(CLANG_ENABLE_STATIC_ANALYZER)
+-  target_link_libraries(clang-tidy PRIVATE
++  target_link_libraries(clangTidyMain PRIVATE
+     clangTidyMPIModule
+   )
+ endif()
+ 
++# supress warning about unknown source file
++set(LLVM_OPTIONAL_SOURCES "ClangTidyMain.cpp")
++# using dummy source file to supress warning about no sources
++add_clang_tool(clang-tidy
++  ${LLVM_MAIN_SRC_DIR}/cmake/dummy.cpp
++  )
++target_link_libraries(clang-tidy
++  PRIVATE
++  clangTidyMain
++  )
++
+ install(PROGRAMS clang-tidy-diff.py
+   DESTINATION share/clang
+   COMPONENT clang-tidy)
 diff --git a/tools/extra/clang-tidy/tool/ClangTidyMain.cpp b/tools/extra/clang-tidy/tool/ClangTidyMain.cpp
 index 12a60244f34..50e4bad96d2 100644
 --- a/tools/extra/clang-tidy/tool/ClangTidyMain.cpp
@@ -85,3 +130,40 @@ index 12a60244f34..50e4bad96d2 100644
    std::vector<std::string> EnabledChecks =
        getCheckNames(EffectiveOptions, AllowEnablingAnalyzerAlphaCheckers);
  
+diff --git a/tools/extra/test/clang-tidy/check_clang_tidy.py b/tools/extra/test/clang-tidy/check_clang_tidy.py
+index 9768011a3ef..7e1d1e370cf 100755
+--- a/tools/extra/test/clang-tidy/check_clang_tidy.py
++++ b/tools/extra/test/clang-tidy/check_clang_tidy.py
+@@ -20,6 +20,7 @@ Usage:
+     [-assume-filename=<file-with-source-extension>] \
+     [-check-suffix=<comma-separated-file-check-suffixes>] \
+     [-check-suffixes=<comma-separated-file-check-suffixes>] \
++    [-clang-tidy=<path/to/clang-tidy>] \
+     <source-file> <check-name> <temp-file> \
+     -- [optional clang-tidy arguments]
+ 
+@@ -53,6 +54,7 @@ def main():
+   parser.add_argument('-check-suffix', '-check-suffixes',
+                       default=[''], type=csv,
+                       help="comma-separated list of FileCheck suffixes")
++  parser.add_argument('-clang-tidy', default='clang-tidy')
+ 
+   args, extra_args = parser.parse_known_args()
+ 
+@@ -62,6 +64,7 @@ def main():
+   check_name = args.check_name
+   temp_file_name = args.temp_file_name
+   expect_clang_tidy_error = args.expect_clang_tidy_error
++  clang_tidy = args.clang_tidy
+ 
+   file_name_with_extension = assume_file_name or input_file_name
+   _, extension = os.path.splitext(file_name_with_extension)
+@@ -138,7 +141,7 @@ def main():
+   original_file_name = temp_file_name + ".orig"
+   write_file(original_file_name, cleaned_test)
+ 
+-  args = ['clang-tidy', temp_file_name, '-fix', '--checks=-*,' + check_name] + \
++  args = [clang_tidy, temp_file_name, '-fix', '--checks=-*,' + check_name] + \
+         clang_tidy_extra_args
+   if expect_clang_tidy_error:
+     args.insert(0, 'not')
