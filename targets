@@ -25,4 +25,6 @@ clangTidyFuchsiaModule
 clangTidyGoogleModule
 clangTidyMPIModule
 clangTidyObjCModule
+clangTidy
+clangTidyMain
 clang-tidy
