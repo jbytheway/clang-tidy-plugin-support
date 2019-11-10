@@ -138,6 +138,46 @@ index 00000000000..c027d248738
 +++ b/tools/extra/clang-tidy/tool/dummy.cpp
 @@ -0,0 +1 @@
 +typedef int dummy;
+diff --git a/tools/extra/clang-tidy/tool/run-clang-tidy.py b/tools/extra/clang-tidy/tool/run-clang-tidy.py
+index 93635cbef16..a33d29a4130 100755
+--- a/tools/extra/clang-tidy/tool/run-clang-tidy.py
++++ b/tools/extra/clang-tidy/tool/run-clang-tidy.py
+@@ -76,7 +76,7 @@ def make_absolute(f, directory):
+ 
+ def get_tidy_invocation(f, clang_tidy_binary, checks, tmpdir, build_path,
+                         header_filter, extra_arg, extra_arg_before, quiet,
+-                        config):
++                        config, fix_errors):
+   """Gets a command line for clang-tidy."""
+   start = [clang_tidy_binary]
+   if header_filter is not None:
+@@ -102,6 +102,8 @@ def get_tidy_invocation(f, clang_tidy_binary, checks, tmpdir, build_path,
+       start.append('-quiet')
+   if config:
+       start.append('-config=' + config)
++  if fix_errors:
++      start.append('-fix-errors')
+   start.append(f)
+   return start
+ 
+@@ -160,7 +162,7 @@ def run_tidy(args, tmpdir, build_path, queue, lock, failed_files):
+     invocation = get_tidy_invocation(name, args.clang_tidy_binary, args.checks,
+                                      tmpdir, build_path, args.header_filter,
+                                      args.extra_arg, args.extra_arg_before,
+-                                     args.quiet, args.config)
++                                     args.quiet, args.config, args.fix_errors)
+ 
+     proc = subprocess.Popen(invocation, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+     output, err = proc.communicate()
+@@ -207,6 +209,8 @@ def main():
+                       help='number of tidy instances to be run in parallel.')
+   parser.add_argument('files', nargs='*', default=['.*'],
+                       help='files to be processed (regex on path)')
++  parser.add_argument('-fix-errors', action='store_true', help='apply fix-its, '
++                      'even if compiler error is encountered')
+   parser.add_argument('-fix', action='store_true', help='apply fix-its')
+   parser.add_argument('-format', action='store_true', help='Reformat code '
+                       'after applying fixes')
 diff --git a/tools/extra/test/clang-tidy/check_clang_tidy.py b/tools/extra/test/clang-tidy/check_clang_tidy.py
 index 9768011a3ef..7e1d1e370cf 100755
 --- a/tools/extra/test/clang-tidy/check_clang_tidy.py
