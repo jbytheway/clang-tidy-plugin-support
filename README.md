@@ -19,6 +19,12 @@ intention that it should be usable in Travis on such hosts for other projects.
 
 The logic of the build is contained in [the build script](build.sh).
 
+This project was created for the benefit of
+[Cataclysm-DDA](https://github.com/CleverRaven/Cataclysm-DDA) (though my
+intention is that it should be applicable to any project with a desire for
+custom clang-tidy checks).  If you'd like to see more details about how it's
+used there you can skip down to the [discussion below](#real-world-example).
+
 ## How it works
 
 In short, this version of `clang-tidy` is compiled from the usual llvm-8
@@ -103,7 +109,8 @@ command-line options to direct it to the proper place:
 ## Supporting local builds of clang-tidy
 
 If you want to build the plugin on a different platform where you don't have
-access to the same Xenial packages and the , then that is also possible.
+access to the same Xenial packages and the precompiled version will not work,
+then that is also possible.
 
 Check out the llvm sources.  For best compatibility, use the `release_80`
 branches within the various repositories at https://llvm.org/git/ or their
@@ -118,3 +125,47 @@ to CMake when configuring your build.
 In the CMake code above, add a setting which allows the developer to specify
 the location of the necessary `clang-tidy` internal headers.  If that is set,
 you can skip downloading the tarball and use the local copy instead.
+
+## Real-world example
+
+This project is used in the CI of
+[Cataclysm-DDA](https://github.com/CleverRaven/Cataclysm-DDA).  Here are some
+pointers to the relevant pieces of the codebase.
+
+In `.travis.yml` the [relevant
+job](https://github.com/CleverRaven/Cataclysm-DDA/blob/146de609cd023dfef63db7913d4180a861343e9d/.travis.yml#L122-L128)
+uses the LLVM toolchain repo (via `addons` `apt` `sources`) and installs
+`libclang-8-dev`, `llvm-8-dev`, and `llvm-8-tools`.  It also sets
+`CATA_CLANG_TIDY=plugin`, which will be referenced later.
+
+In this case the build setup script `requirements.sh` [installs
+lit](https://github.com/CleverRaven/Cataclysm-DDA/blob/146de609cd023dfef63db7913d4180a861343e9d/build-scripts/requirements.sh#L32-L34),
+which is used for the plugin tests.
+
+The build script `build.sh` [sets up the relevant cmake
+options](https://github.com/CleverRaven/Cataclysm-DDA/blob/146de609cd023dfef63db7913d4180a861343e9d/build-scripts/build.sh#L49-L56),
+[tests the
+plugin](https://github.com/CleverRaven/Cataclysm-DDA/blob/146de609cd023dfef63db7913d4180a861343e9d/build-scripts/build.sh#L70-L83)
+(if it was built), and [runs
+`clang-tidy`](https://github.com/CleverRaven/Cataclysm-DDA/blob/146de609cd023dfef63db7913d4180a861343e9d/build-scripts/build.sh#L85-L125).
+Note that most of the logic here relates to choosing a good random susbet of
+the source code to run `clang-tidy` on, because the Travis-imposed limit of 50
+minutes is insufficient time for a full `clang-tidy` run.
+
+This top-level `CMakeLists.txt` [conditionally
+builds](https://github.com/CleverRaven/Cataclysm-DDA/blob/146de609cd023dfef63db7913d4180a861343e9d/CMakeLists.txt#L349-L351)
+the plugin code.
+
+The plugin's `CMakeLists.txt` [finds LLVM and
+clang](https://github.com/CleverRaven/Cataclysm-DDA/blob/146de609cd023dfef63db7913d4180a861343e9d/tools/clang-tidy-plugin/CMakeLists.txt#L3-L4)
+in the usual CMake way (using `find_package`).  However, for the patched
+`clang-tidy` it either [uses
+`ExternalProject_Add`](https://github.com/CleverRaven/Cataclysm-DDA/blob/146de609cd023dfef63db7913d4180a861343e9d/tools/clang-tidy-plugin/CMakeLists.txt#L24-L43)
+to download from this project or [a user-specified
+version](https://github.com/CleverRaven/Cataclysm-DDA/blob/146de609cd023dfef63db7913d4180a861343e9d/tools/clang-tidy-plugin/CMakeLists.txt#L45-L46)
+to support local builds on other platforms.  It also [provides lit
+options](https://github.com/CleverRaven/Cataclysm-DDA/blob/146de609cd023dfef63db7913d4180a861343e9d/tools/clang-tidy-plugin/CMakeLists.txt#L62)
+for the plugin tests.
+
+The tests use `lit`, similarly to other clang-tidy checks.  Here is [one
+example](https://github.com/CleverRaven/Cataclysm-DDA/blob/146de609cd023dfef63db7913d4180a861343e9d/tools/clang-tidy-plugin/test/no-long.cpp#L1)
