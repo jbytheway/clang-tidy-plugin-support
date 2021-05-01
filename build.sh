@@ -12,10 +12,12 @@ function build_time {
   echo $(($(date +%s) - $(cat $root/build-start-time)))
 }
 
-export CC=clang-8
-export CXX=clang++-8
+LLVM_VERSION=11
 
-llvm_dir=/usr/lib/llvm-8/lib/cmake/llvm
+export CC=clang-$LLVM_VERSION
+export CXX=clang++-$LLVM_VERSION
+
+llvm_dir=/usr/lib/llvm-$LLVM_VERSION/lib/cmake/llvm
 
 test -f "$llvm_dir/LLVMConfig.cmake"
 
