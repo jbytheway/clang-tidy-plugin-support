@@ -12,25 +12,25 @@ function build_time {
   echo $(($(date +%s) - $(cat $root/build-start-time)))
 }
 
-export CC=clang-8
-export CXX=clang++-8
+LLVM_VERSION=11
 
-llvm_dir=/usr/lib/llvm-8/lib/cmake/llvm
+export CC=clang-$LLVM_VERSION
+export CXX=clang++-$LLVM_VERSION
+
+llvm_dir=/usr/lib/llvm-$LLVM_VERSION/lib/cmake/llvm
 
 test -f "$llvm_dir/LLVMConfig.cmake"
 
-function git_clone {
-  git clone --depth 1 --branch release_80 "$@"
-}
-
-git_clone https://github.com/llvm-mirror/clang.git
+git clone --depth 1 --branch release/${LLVM_VERSION}.x \
+  https://github.com/llvm/llvm-project.git
+cd llvm-project
 cd clang/tools
-git_clone https://github.com/llvm-mirror/clang-tools-extra.git extra
-cd ..
+ln -s ../../clang-tools-extra extra
+cd ../..
 
-patch -p1 < ../compatibility.patch
 patch -p1 < ../plugin-support.patch
 
+cd clang
 mkdir build
 cd build
 cmake \
@@ -44,6 +44,9 @@ cmake \
   ..
   # -DCLANG_ENABLE_STATIC_ANALYZER=OFF \
 #cat CMakeCache.txt
+
+parallel=$(($(nproc) + 1))
+
 # Loop over targets so we can abort when aproaching the 50 minute Travis time
 # limit
 while read targets
@@ -54,7 +57,7 @@ do
     echo "Stopping build; running out of time"
     break
   fi
-  make -j3 $targets
+  make -j$parallel $targets
 done < $root/targets
 ccache -s
 

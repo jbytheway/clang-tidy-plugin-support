@@ -1,4 +1,4 @@
-dist: xenial
+dist: focal
 language: c++
 os: linux
 
@@ -7,12 +7,15 @@ cache: ccache
 addons:
   apt:
     sources:
-      - ubuntu-toolchain-r-test
-      - llvm-toolchain-xenial-8
+      - sourceline: ppa:ubuntu-toolchain-r/test
+      - sourceline: 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main'
+        key_url: https://apt.llvm.org/llvm-snapshot.gpg.key
     packages:
-      - clang-8
-      - llvm-8-dev
-      - lld-8
+      - clang-11
+      - libc6=2.31-0ubuntu9.2
+      - libc6-dev=2.31-0ubuntu9.2
+      - llvm-11-dev
+      - lld-11
 
 script:
   - ./build.sh

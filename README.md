@@ -14,8 +14,11 @@ However, for CI testing it seems reasonable to assume that one could stick to a
 specific LLVM version for long enough that API instability is not a serious
 concern.
 
-This repository builds against llvm-8 on a Travis Ubuntu Xenial host, with the
+This repository builds against LLVM 11 on a Travis Ubuntu Focal host, with the
 intention that it should be usable in Travis on such hosts for other projects.
+
+For a version using LLVM 8 on Ubuntu Xenial, see the [llvm-8
+branch](https://github.com/jbytheway/clang-tidy-plugin-support/tree/llvm-8).
 
 The logic of the build is contained in [the build script](build.sh).
 
@@ -43,13 +46,16 @@ os: linux
 dist: xenial
 addons: &clang8
   apt:
-    packages: ["clang-8", "libclang-8-dev", "llvm-8-dev", "llvm-8-tools"]
-    sources: [ubuntu-toolchain-r-test, llvm-toolchain-xenial-8]
+    sources:
+      - sourceline: ppa:ubuntu-toolchain-r/test
+      - sourceline: 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main'
+        key_url: https://apt.llvm.org/llvm-snapshot.gpg.key
+    packages: ["clang-11", "libclang-11-dev", "llvm-11-dev", "llvm-11-tools"]
 ```
 
-`libclang-8-dev` and `llvm-8-dev` provide most of the headers a plugin build
-will require.  `llvm-8-tools` provides `FileCheck` (actually called
-`FileCheck-8` in that package) which is required if you want to write tests for
+`libclang-11-dev` and `llvm-11-dev` provide most of the headers a plugin build
+will require.  `llvm-11-tools` provides `FileCheck` (actually called
+`FileCheck-11` in that package) which is required if you want to write tests for
 your plugin in the style of `clang-tidy` tests.
 
 Download and unpack the release tarball from this repository to get the
@@ -57,7 +63,7 @@ remaining things required.  It provides:
 * Further headers; these are internal `clang-tidy` headers not normally
   installed by llvm.
 * The patched `clang-tidy` binary with plugin support.
-* A symlink to access `FileCheck` under its usual name, not `FileCheck-8`.
+* A symlink to access `FileCheck` under its usual name, not `FileCheck-11`.
 * `check_clang_tidy.py`, also used for tests.
 
 If you are using CMake for your plugin build, you might for example use
