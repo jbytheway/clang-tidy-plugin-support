@@ -4,6 +4,9 @@ os: linux
 
 cache: ccache
 
+env:
+  - LLVM_VERSION=11
+
 addons:
   apt:
     sources:

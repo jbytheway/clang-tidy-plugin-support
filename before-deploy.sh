@@ -2,8 +2,6 @@
 
 set -uex
 
-LLVM_VERSION=11
-
 name=clang-tidy-plugin-support-$TRAVIS_TAG
 mkdir -p $name/{include,bin,lib}
 cp clang/build/bin/clang-tidy $name/bin

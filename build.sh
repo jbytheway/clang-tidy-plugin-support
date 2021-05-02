@@ -12,8 +12,6 @@ function build_time {
   echo $(($(date +%s) - $(cat $root/build-start-time)))
 }
 
-LLVM_VERSION=11
-
 export CC=clang-$LLVM_VERSION
 export CXX=clang++-$LLVM_VERSION
 
