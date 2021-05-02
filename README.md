@@ -77,7 +77,7 @@ find_package(Clang REQUIRED CONFIG)
 
 add_library(YourPlugin MODULE ...)
 
-SET(ctps_version llvm-8.0.1-r12)
+SET(ctps_version llvm-11.1.0-r1)
 SET(ctps_src ${CMAKE_CURRENT_BINARY_DIR}/clang-tidy-plugin-support)
 
 ExternalProject_Add(
