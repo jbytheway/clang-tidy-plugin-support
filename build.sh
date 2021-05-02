@@ -6,7 +6,10 @@ root=$PWD
 date +%s > build-start-time
 time_limit=2650
 
-ccache -s
+ccache --zero-stats
+# Increase cache size from default of 500MB because clang is big
+ccache --max-size=1G
+ccache --show-stats
 
 function build_time {
   echo $(($(date +%s) - $(cat $root/build-start-time)))
@@ -57,6 +60,6 @@ do
   fi
   make -j$parallel $targets
 done < $root/targets
-ccache -s
+ccache --show-stats
 
 cd $root
