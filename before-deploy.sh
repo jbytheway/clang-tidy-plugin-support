@@ -11,4 +11,4 @@ ln -s /usr/bin/FileCheck-$LLVM_VERSION $name/bin/FileCheck
 cp clang/tools/extra/clang-tidy/*.h $name/include
 cp clang/LICENSE.TXT $name/clang-LICENSE.TXT
 ln -s /usr/include/clang $name/lib/clang
-tar -cJvf $name.tar.xz $name
+tar -cJvf ../$name.tar.xz $name
