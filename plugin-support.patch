@@ -1,5 +1,5 @@
 diff --git a/clang-tools-extra/clang-tidy/ClangTidyOptions.cpp b/clang-tools-extra/clang-tidy/ClangTidyOptions.cpp
-index 4c1f28673781..c04ec6fe11af 100644
+index be068aa8da4a..73f91530d773 100644
 --- a/clang-tools-extra/clang-tidy/ClangTidyOptions.cpp
 +++ b/clang-tools-extra/clang-tidy/ClangTidyOptions.cpp
 @@ -88,6 +88,7 @@ template <> struct MappingTraits<ClangTidyOptions> {
@@ -18,19 +18,19 @@ index 4c1f28673781..c04ec6fe11af 100644
    Options.HeaderFilterRegex = "";
    Options.SystemHeaders = false;
    Options.FormatStyle = "none";
-@@ -150,6 +152,7 @@ ClangTidyOptions ClangTidyOptions::mergeWith(const ClangTidyOptions &Other,
- 
-   mergeCommaSeparatedLists(Result.Checks, Other.Checks);
-   mergeCommaSeparatedLists(Result.WarningsAsErrors, Other.WarningsAsErrors);
-+  mergeCommaSeparatedLists(Result.Plugins, Other.Plugins);
-   overrideValue(Result.HeaderFilterRegex, Other.HeaderFilterRegex);
-   overrideValue(Result.SystemHeaders, Other.SystemHeaders);
-   overrideValue(Result.FormatStyle, Other.FormatStyle);
+@@ -146,6 +148,7 @@ ClangTidyOptions &ClangTidyOptions::mergeWith(const ClangTidyOptions &Other,
+                                               unsigned Order) {
+   mergeCommaSeparatedLists(Checks, Other.Checks);
+   mergeCommaSeparatedLists(WarningsAsErrors, Other.WarningsAsErrors);
++  mergeCommaSeparatedLists(Plugins, Other.Plugins);
+   overrideValue(HeaderFilterRegex, Other.HeaderFilterRegex);
+   overrideValue(SystemHeaders, Other.SystemHeaders);
+   overrideValue(FormatStyle, Other.FormatStyle);
 diff --git a/clang-tools-extra/clang-tidy/ClangTidyOptions.h b/clang-tools-extra/clang-tidy/ClangTidyOptions.h
-index 0f3c1d413ec3..5a3e7ddcd7a9 100644
+index d8a4a14f5b52..29c2ff9c62d4 100644
 --- a/clang-tools-extra/clang-tidy/ClangTidyOptions.h
 +++ b/clang-tools-extra/clang-tidy/ClangTidyOptions.h
-@@ -68,6 +68,9 @@ struct ClangTidyOptions {
+@@ -72,6 +72,9 @@ struct ClangTidyOptions {
    /// WarningsAsErrors filter.
    llvm::Optional<std::string> WarningsAsErrors;
  
@@ -41,7 +41,7 @@ index 0f3c1d413ec3..5a3e7ddcd7a9 100644
    /// main files will always be displayed.
    llvm::Optional<std::string> HeaderFilterRegex;
 diff --git a/clang-tools-extra/clang-tidy/tool/ClangTidyMain.cpp b/clang-tools-extra/clang-tidy/tool/ClangTidyMain.cpp
-index e248c04ea570..165af84eb659 100644
+index 2466b647c68c..aad9c5a140c5 100644
 --- a/clang-tools-extra/clang-tidy/tool/ClangTidyMain.cpp
 +++ b/clang-tools-extra/clang-tidy/tool/ClangTidyMain.cpp
 @@ -19,6 +19,7 @@
@@ -52,9 +52,9 @@ index e248c04ea570..165af84eb659 100644
  #include "llvm/Support/InitLLVM.h"
  #include "llvm/Support/Process.h"
  #include "llvm/Support/Signals.h"
-@@ -168,6 +169,12 @@ each source file in its parent directories.
+@@ -190,6 +191,12 @@ configuration of all checks.
  )"),
-                                    cl::init(""), cl::cat(ClangTidyCategory));
+                                 cl::init(false), cl::cat(ClangTidyCategory));
  
 +static cl::opt<std::string> Plugins("plugins", cl::desc(R"(
 +Comma-separated list of plugins:
@@ -62,10 +62,10 @@ index e248c04ea570..165af84eb659 100644
 +)"),
 +                                   cl::init(""), cl::cat(ClangTidyCategory));
 +
- static cl::opt<bool> DumpConfig("dump-config", cl::desc(R"(
- Dumps configuration in the YAML format to
- stdout. This option can be used along with a
-@@ -293,6 +300,8 @@ static std::unique_ptr<ClangTidyOptionsProvider> createOptionsProvider(
+ static cl::opt<bool> EnableCheckProfile("enable-check-profile", cl::desc(R"(
+ Enable per-check timing profiles, and print a
+ report to stderr.
+@@ -303,6 +310,8 @@ static std::unique_ptr<ClangTidyOptionsProvider> createOptionsProvider(
      OverrideOptions.Checks = Checks;
    if (WarningsAsErrors.getNumOccurrences() > 0)
      OverrideOptions.WarningsAsErrors = WarningsAsErrors;
@@ -74,7 +74,7 @@ index e248c04ea570..165af84eb659 100644
    if (HeaderFilter.getNumOccurrences() > 0)
      OverrideOptions.HeaderFilterRegex = HeaderFilter;
    if (SystemHeaders.getNumOccurrences() > 0)
-@@ -389,6 +398,18 @@ int clangTidyMain(int argc, const char **argv) {
+@@ -423,6 +432,18 @@ int clangTidyMain(int argc, const char **argv) {
    SmallString<256> FilePath = MakeAbsolute(std::string(FileName));
  
    ClangTidyOptions EffectiveOptions = OptionsProvider->getOptions(FilePath);
