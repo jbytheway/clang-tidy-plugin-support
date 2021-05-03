@@ -14,7 +14,7 @@ However, for CI testing it seems reasonable to assume that one could stick to a
 specific LLVM version for long enough that API instability is not a serious
 concern.
 
-This repository builds against LLVM 11 on a Travis Ubuntu Focal host, with the
+This repository builds against LLVM 12 on a Travis Ubuntu Focal host, with the
 intention that it should be usable in Travis on such hosts for other projects.
 
 For a version using LLVM 8 on Ubuntu Xenial, see the [llvm-8
@@ -30,7 +30,7 @@ used there you can skip down to the [discussion below](#real-world-example).
 
 ## How it works
 
-In short, this version of `clang-tidy` is compiled from the usual llvm-8
+In short, this version of `clang-tidy` is compiled from the usual llvm-12
 sources, but with `-rdynamic` enabled, which allows plugins to call functions
 within the `clang-tidy` binary.  This is sufficient to enable plugins to be
 usable, via `LD_PRELOAD`.  However, that's not always convenient, so I have
@@ -44,18 +44,18 @@ Set up a build with something like the following settings
 ```yaml
 os: linux
 dist: xenial
-addons: &clang8
+addons: &clang12
   apt:
     sources:
       - sourceline: ppa:ubuntu-toolchain-r/test
       - sourceline: 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main'
         key_url: https://apt.llvm.org/llvm-snapshot.gpg.key
-    packages: ["clang-11", "libclang-11-dev", "llvm-11-dev", "llvm-11-tools"]
+    packages: ["clang-12", "libclang-12-dev", "llvm-12-dev", "llvm-12-tools"]
 ```
 
-`libclang-11-dev` and `llvm-11-dev` provide most of the headers a plugin build
-will require.  `llvm-11-tools` provides `FileCheck` (actually called
-`FileCheck-11` in that package) which is required if you want to write tests for
+`libclang-12-dev` and `llvm-12-dev` provide most of the headers a plugin build
+will require.  `llvm-12-tools` provides `FileCheck` (actually called
+`FileCheck-12` in that package) which is required if you want to write tests for
 your plugin in the style of `clang-tidy` tests.
 
 Download and unpack the release tarball from this repository to get the
@@ -77,7 +77,7 @@ find_package(Clang REQUIRED CONFIG)
 
 add_library(YourPlugin MODULE ...)
 
-SET(ctps_version llvm-11.1.0-r1)
+SET(ctps_version llvm-12.0.0-r1)
 SET(ctps_src ${CMAKE_CURRENT_BINARY_DIR}/clang-tidy-plugin-support)
 
 ExternalProject_Add(
@@ -108,19 +108,19 @@ When running CMake, it might pick up the llvm 7 headers rather than the llvm 8
 headers we need.  If that happens, you can use the following `cmake`
 command-line options to direct it to the proper place:
 ```sh
--DLLVM_DIR=/usr/lib/llvm-8/lib/cmake/llvm
--DClang_DIR=/usr/lib/llvm-8/lib/cmake/clang
+-DLLVM_DIR=/usr/lib/llvm-12/lib/cmake/llvm
+-DClang_DIR=/usr/lib/llvm-12/lib/cmake/clang
 ```
 
 ## Supporting local builds of clang-tidy
 
 If you want to build the plugin on a different platform where you don't have
-access to the same Xenial packages and the precompiled version will not work,
+access to the same Focal packages and the precompiled version will not work,
 then that is also possible.
 
-Check out the llvm sources.  For best compatibility, use the `release_80`
-branches within the various repositories at https://llvm.org/git/ or their
-mirrors at https://github.com/llvm-mirror.
+Check out the llvm sources.  For best compatibility, use the `release/12.x`
+branches within the official LLVM repo at
+https://github.com/llvm/llvm-project.git.
 
 If you want to add the `-plugins` command-line option, then apply the
 [patch](plugin-support.patch) found in this repository.
