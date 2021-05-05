@@ -48,7 +48,7 @@ addons: &clang12
   apt:
     sources:
       - sourceline: ppa:ubuntu-toolchain-r/test
-      - sourceline: 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main'
+      - sourceline: 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main'
         key_url: https://apt.llvm.org/llvm-snapshot.gpg.key
     packages: ["clang-12", "libclang-12-dev", "llvm-12-dev", "llvm-12-tools"]
 ```
@@ -63,7 +63,7 @@ remaining things required.  It provides:
 * Further headers; these are internal `clang-tidy` headers not normally
   installed by llvm.
 * The patched `clang-tidy` binary with plugin support.
-* A symlink to access `FileCheck` under its usual name, not `FileCheck-11`.
+* A symlink to access `FileCheck` under its usual name, not `FileCheck-12`.
 * `check_clang_tidy.py`, also used for tests.
 
 If you are using CMake for your plugin build, you might for example use
@@ -83,7 +83,7 @@ SET(ctps_src ${CMAKE_CURRENT_BINARY_DIR}/clang-tidy-plugin-support)
 ExternalProject_Add(
     clang-tidy-plugin-support
     URL ${ctps_releases}/${ctps_version}/clang-tidy-plugin-support-${ctps_version}.tar.xz
-    URL_HASH SHA256=00ffab0df11250f394830735514c62ae787bd2eb6eb9d5e97471206d270c54e2
+    URL_HASH SHA256=40626a0cb132b6eb137c4c7b5b1a04a0c96623c076790b848cc577b95a8889c5
     SOURCE_DIR ${ctps_src}
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
@@ -104,7 +104,7 @@ target_compile_options(
     YourPlugin PRIVATE -fno-exceptions -fno-rtti)
 ```
 
-When running CMake, it might pick up the llvm 7 headers rather than the llvm 8
+When running CMake, it might pick up the system llvm headers rather than the
 headers we need.  If that happens, you can use the following `cmake`
 command-line options to direct it to the proper place:
 ```sh
