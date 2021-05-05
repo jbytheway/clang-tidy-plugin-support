@@ -1,0 +1,77 @@
+diff --git a/clang-tools-extra/clang-tidy/tool/run-clang-tidy.py b/clang-tools-extra/clang-tidy/tool/run-clang-tidy.py
+index 313ecd2f9571..169a8d5f1eea 100755
+--- a/clang-tools-extra/clang-tidy/tool/run-clang-tidy.py
++++ b/clang-tools-extra/clang-tidy/tool/run-clang-tidy.py
+@@ -81,7 +81,7 @@ def make_absolute(f, directory):
+ 
+ def get_tidy_invocation(f, clang_tidy_binary, checks, tmpdir, build_path,
+                         header_filter, allow_enabling_alpha_checkers,
+-                        extra_arg, extra_arg_before, quiet, config):
++                        extra_arg, extra_arg_before, quiet, config, fix_errors):
+   """Gets a command line for clang-tidy."""
+   start = [clang_tidy_binary, '--use-color']
+   if allow_enabling_alpha_checkers:
+@@ -106,6 +106,8 @@ def get_tidy_invocation(f, clang_tidy_binary, checks, tmpdir, build_path,
+       start.append('-quiet')
+   if config:
+       start.append('-config=' + config)
++  if fix_errors:
++      start.append('-fix-errors')
+   start.append(f)
+   return start
+ 
+@@ -165,7 +167,7 @@ def run_tidy(args, tmpdir, build_path, queue, lock, failed_files):
+                                      tmpdir, build_path, args.header_filter,
+                                      args.allow_enabling_alpha_checkers,
+                                      args.extra_arg, args.extra_arg_before,
+-                                     args.quiet, args.config)
++                                     args.quiet, args.config, args.fix_errors)
+ 
+     proc = subprocess.Popen(invocation, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+     output, err = proc.communicate()
+@@ -217,6 +219,8 @@ def main():
+                       help='number of tidy instances to be run in parallel.')
+   parser.add_argument('files', nargs='*', default=['.*'],
+                       help='files to be processed (regex on path)')
++  parser.add_argument('-fix-errors', action='store_true', help='apply fix-its, '
++                      'even if compiler error is encountered')
+   parser.add_argument('-fix', action='store_true', help='apply fix-its')
+   parser.add_argument('-format', action='store_true', help='Reformat code '
+                       'after applying fixes')
+diff --git a/clang-tools-extra/test/clang-tidy/check_clang_tidy.py b/clang-tools-extra/test/clang-tidy/check_clang_tidy.py
+index 0031d9b04ad1..8321c2b1e3db 100755
+--- a/clang-tools-extra/test/clang-tidy/check_clang_tidy.py
++++ b/clang-tools-extra/test/clang-tidy/check_clang_tidy.py
+@@ -19,6 +19,7 @@ Usage:
+     [-assume-filename=<file-with-source-extension>] \
+     [-check-suffix=<comma-separated-file-check-suffixes>] \
+     [-check-suffixes=<comma-separated-file-check-suffixes>] \
++    [-clang-tidy=<path/to/clang-tidy>] \
+     <source-file> <check-name> <temp-file> \
+     -- [optional clang-tidy arguments]
+ 
+@@ -47,6 +48,7 @@ def run_test_once(args, extra_args):
+   temp_file_name = args.temp_file_name
+   expect_clang_tidy_error = args.expect_clang_tidy_error
+   std = args.std
++  clang_tidy = args.clang_tidy
+ 
+   file_name_with_extension = assume_file_name or input_file_name
+   _, extension = os.path.splitext(file_name_with_extension)
+@@ -135,7 +137,7 @@ def run_test_once(args, extra_args):
+   original_file_name = temp_file_name + ".orig"
+   write_file(original_file_name, cleaned_test)
+ 
+-  args = ['clang-tidy', temp_file_name, '-fix', '--checks=-*,' + check_name] + \
++  args = [clang_tidy, temp_file_name, '-fix', '--checks=-*,' + check_name] + \
+       clang_tidy_extra_args + ['--'] + clang_extra_args
+   if expect_clang_tidy_error:
+     args.insert(0, 'not')
+@@ -235,6 +237,7 @@ def main():
+       type=csv,
+       help='comma-separated list of FileCheck suffixes')
+   parser.add_argument('-std', type=csv, default=['c++11-or-later'])
++  parser.add_argument('-clang-tidy', default='clang-tidy')
+ 
+   args, extra_args = parser.parse_known_args()
+ 

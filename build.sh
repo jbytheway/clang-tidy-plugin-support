@@ -35,6 +35,7 @@ ln -s ../../clang-tools-extra extra
 cd ../..
 
 patch -p1 < ../plugin-support.patch
+patch -p1 < ../clang-tidy-scripts.patch
 
 cd clang
 mkdir build
