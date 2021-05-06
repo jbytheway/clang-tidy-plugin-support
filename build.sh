@@ -4,7 +4,12 @@ set -uex
 
 root=$PWD
 date +%s > build-start-time
-time_limit=2650
+if [ "${TRAVIS:-}" = true ]
+then
+  time_limit=2650
+else
+  time_limit=36000
+fi
 
 ccache --zero-stats
 # Increase cache size from default of 500MB because clang is big
