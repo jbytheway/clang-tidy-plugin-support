@@ -30,12 +30,24 @@ used there you can skip down to the [discussion below](#real-world-example).
 
 ## How it works
 
+Plugin support is implemented in two different ways in this repository.
+
+### Plugin support in the `clang-tidy` executable
+
 In short, this version of `clang-tidy` is compiled from the usual llvm-12
 sources, but with `-rdynamic` enabled, which allows plugins to call functions
 within the `clang-tidy` binary.  This is sufficient to enable plugins to be
 usable, via `LD_PRELOAD`.  However, that's not always convenient, so I have
 also patched in a `-plugins` option that allows you to specify plugins to be
 loaded on the command line.
+
+### `clang-tidy` as a static library
+The LLVM sources allow building a static library `lib/clangTidyMain.a`
+which contains the usual functionality of `clang-tidy`, excluding
+the main function.  Therefore you can easily switch from building your
+plugin as a dynamic library to linking your plugin against `clangTidyMain.a`
+to create a custom `clang-tidy` executable.  `check_clang_tidy.py` is patched
+in this repository to allow using it with the custom `clang-tidy` executable.
 
 ## Configuring a Travis build to use this project
 
@@ -63,6 +75,8 @@ remaining things required.  It provides:
 * Further headers; these are internal `clang-tidy` headers not normally
   installed by llvm.
 * The patched `clang-tidy` binary with plugin support.
+* A static library `clangTidyMain.a` containing the usual `clang-tidy`
+  functionality, excluding the main function.
 * A symlink to access `FileCheck` under its usual name, not `FileCheck-12`.
 * `check_clang_tidy.py`, also used for tests.
 
@@ -76,6 +90,7 @@ find_package(LLVM REQUIRED CONFIG)
 find_package(Clang REQUIRED CONFIG)
 
 add_library(YourPlugin MODULE ...)
+# or `add_executable(YourExecutable ...)` if you want to build a custom executable
 
 SET(ctps_version llvm-12.0.0-r1)
 SET(ctps_src ${CMAKE_CURRENT_BINARY_DIR}/clang-tidy-plugin-support)
@@ -93,6 +108,12 @@ ExternalProject_Add(
 
 add_dependencies(YourPlugin clang-tidy-plugin-support)
 
+#### These are needed if you want to build a custom executable
+# target_link_libraries(
+#     YourExecutable
+#     clangTidyMain
+#     )
+
 target_include_directories(
     YourPlugin SYSTEM PRIVATE
     ${LLVM_INCLUDE_DIRS} ${CLANG_INCLUDE_DIRS} ${ctps_src}/include)
@@ -103,6 +124,10 @@ target_compile_definitions(
 target_compile_options(
     YourPlugin PRIVATE -fno-exceptions -fno-rtti)
 ```
+
+When building a custom executable, the main function should be implemented and
+call `clang::tidy::clangTidyMain( argc, argv )` declared in
+`clang-tools-extra/clang-tidy/tool/ClangTidyMain.h` within the LLVM sources.
 
 When running CMake, it might pick up the system llvm headers rather than the
 headers we need.  If that happens, you can use the following `cmake`
@@ -122,11 +147,18 @@ Check out the llvm sources.  For best compatibility, use the `release/12.x`
 branches within the official LLVM repo at
 https://github.com/llvm/llvm-project.git.
 
-If you want to add the `-plugins` command-line option, then apply the
-[patch](plugin-support.patch) found in this repository.
+If you want to add the `-plugins` command-line option or build a custom
+executable, apply the [patch](plugin-support.patch) found in this repository.
 
-Build `clang-tidy`, making sure to pass `-DCMAKE_EXE_LINKER_FLAGS="-rdynamic"`
-to CMake when configuring your build.
+If you want to run the `check_clang_tidy.py` script with the custom clang-tidy
+executable or run the `run-clang-tidy.py` script to automatically apply
+clang-tidy suggestions, apply the [scripts patch](clang-tidy-scripts.patch)
+found in this repository and add the respective command line options when
+running the scripts.
+
+Build `clang-tidy`. If you intend to run `clang-tidy` with the dynamic plugin
+support, make sure to pass `-DCMAKE_EXE_LINKER_FLAGS="-rdynamic"` to CMake
+when configuring your build.
 
 In the CMake code above, add a setting which allows the developer to specify
 the location of the necessary `clang-tidy` internal headers.  If that is set,
