@@ -39,7 +39,7 @@ index 313ecd2f9571..169a8d5f1eea 100755
    parser.add_argument('-format', action='store_true', help='Reformat code '
                        'after applying fixes')
 diff --git a/clang-tools-extra/test/clang-tidy/check_clang_tidy.py b/clang-tools-extra/test/clang-tidy/check_clang_tidy.py
-index 0031d9b04ad1..8321c2b1e3db 100755
+index 0031d9b04ad1..540660dbaa1c 100755
 --- a/clang-tools-extra/test/clang-tidy/check_clang_tidy.py
 +++ b/clang-tools-extra/test/clang-tidy/check_clang_tidy.py
 @@ -19,6 +19,7 @@ Usage:
@@ -50,6 +50,15 @@ index 0031d9b04ad1..8321c2b1e3db 100755
      <source-file> <check-name> <temp-file> \
      -- [optional clang-tidy arguments]
  
+@@ -34,7 +35,7 @@ import sys
+ 
+ 
+ def write_file(file_name, text):
+-  with open(file_name, 'w') as f:
++  with open(file_name, 'w', encoding='utf-8') as f:
+     f.write(text)
+     f.truncate()
+ 
 @@ -47,6 +48,7 @@ def run_test_once(args, extra_args):
    temp_file_name = args.temp_file_name
    expect_clang_tidy_error = args.expect_clang_tidy_error
@@ -58,6 +67,15 @@ index 0031d9b04ad1..8321c2b1e3db 100755
  
    file_name_with_extension = assume_file_name or input_file_name
    _, extension = os.path.splitext(file_name_with_extension)
+@@ -82,7 +84,7 @@ def run_test_once(args, extra_args):
+   if resource_dir is not None:
+     clang_extra_args.append('-resource-dir=%s' % resource_dir)
+ 
+-  with open(input_file_name, 'r') as input_file:
++  with open(input_file_name, 'r', encoding='utf-8') as input_file:
+     input_text = input_file.read()
+ 
+   check_fixes_prefixes = []
 @@ -135,7 +137,7 @@ def run_test_once(args, extra_args):
    original_file_name = temp_file_name + ".orig"
    write_file(original_file_name, cleaned_test)
